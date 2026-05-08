@@ -13,10 +13,8 @@
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   }
   #canvas {
-    display: block;
-    position: fixed;
-    top: 0; left: 0;
-    width: 100%; height: 100%;
+    display: block; position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
   }
   #setup {
     position: fixed; inset: 0;
@@ -57,11 +55,9 @@
   }
   .start-btn:hover { background: rgba(90,184,236,0.4); }
   .start-btn:active { transform: scale(0.97); }
-
   #timer-overlay {
-    display: none;
-    position: fixed; inset: 0; z-index: 10;
-    pointer-events: none;
+    display: none; position: fixed;
+    inset: 0; z-index: 10; pointer-events: none;
   }
   #reset-btn {
     position: absolute;
@@ -126,18 +122,40 @@
   window.addEventListener('resize', resize);
 
   let minutes = 5;
-  let totalSeconds = 0;
-  let elapsed = 0;
-  let interval = null;
+  let totalMs = 0;
+  let startTime = null;       // Date.now() when timer started
+  let pausedAt = null;        // Date.now() when tab was hidden
+  let elapsedBeforePause = 0; // ms already elapsed before last pause
   let rafId = null;
   let wavePhase = 0;
   let currentPct = 0;
   let done = false;
   let bubbles = [];
+  let running = false;
 
   function changeMin(d) {
     minutes = Math.max(1, Math.min(99, minutes + d));
     minDisplay.textContent = minutes + ' dk';
+  }
+
+  // Pause when tab hidden, resume when visible
+  document.addEventListener('visibilitychange', () => {
+    if (!running) return;
+    if (document.hidden) {
+      // Record how much time had elapsed up to now
+      elapsedBeforePause += Date.now() - startTime;
+      pausedAt = Date.now();
+    } else {
+      // Resume: new startTime is now
+      startTime = Date.now();
+      pausedAt = null;
+    }
+  });
+
+  function getElapsedMs() {
+    if (!running) return elapsedBeforePause;
+    if (document.hidden) return elapsedBeforePause;
+    return elapsedBeforePause + (Date.now() - startTime);
   }
 
   function spawnBubble() {
@@ -153,6 +171,18 @@
   }
 
   function drawFrame() {
+    // Update percentage from real elapsed time
+    if (running && !done) {
+      const elapsed = getElapsedMs();
+      currentPct = Math.min((elapsed / totalMs) * 100, 100);
+      if (currentPct >= 100) {
+        currentPct = 100;
+        done = true;
+        running = false;
+        for (let i = 0; i < 18; i++) spawnBubble();
+      }
+    }
+
     ctx.clearRect(0, 0, W, H);
     ctx.fillStyle = '#1a1a2e';
     ctx.fillRect(0, 0, W, H);
@@ -212,30 +242,30 @@
   }
 
   function goTimer() {
-    totalSeconds = minutes * 60;
-    elapsed = 0; currentPct = 0; done = false;
-    wavePhase = 0; bubbles = [];
+    totalMs = minutes * 60 * 1000;
+    elapsedBeforePause = 0;
+    startTime = Date.now();
+    pausedAt = null;
+    currentPct = 0;
+    done = false;
+    running = true;
+    wavePhase = 0;
+    bubbles = [];
     setupEl.style.display = 'none';
     timerOverlay.style.display = 'block';
     cancelAnimationFrame(rafId);
     drawFrame();
-
-    interval = setInterval(() => {
-      elapsed++;
-      currentPct = (elapsed / totalSeconds) * 100;
-      if (elapsed >= totalSeconds) {
-        clearInterval(interval);
-        currentPct = 100;
-        done = true;
-        for (let i = 0; i < 18; i++) spawnBubble();
-      }
-    }, 1000);
   }
 
   function resetTimer() {
-    clearInterval(interval);
     cancelAnimationFrame(rafId);
-    elapsed = 0; currentPct = 0; wavePhase = 0; done = false; bubbles = [];
+    running = false;
+    done = false;
+    currentPct = 0;
+    elapsedBeforePause = 0;
+    startTime = null;
+    wavePhase = 0;
+    bubbles = [];
     ctx.clearRect(0, 0, W, H);
     timerOverlay.style.display = 'none';
     setupEl.style.display = 'flex';
