@@ -66,7 +66,6 @@
     width: 48px; height: 48px; border-radius: 50%;
     border: 1px solid rgba(255,255,255,0.2);
     background: rgba(0,0,0,0.25);
-    color: rgba(255,255,255,0.65);
     display: flex; align-items: center; justify-content: center;
     cursor: pointer; pointer-events: all;
     backdrop-filter: blur(6px);
@@ -123,9 +122,8 @@
 
   let minutes = 5;
   let totalMs = 0;
-  let startTime = null;       // Date.now() when timer started
-  let pausedAt = null;        // Date.now() when tab was hidden
-  let elapsedBeforePause = 0; // ms already elapsed before last pause
+  let startTime = null;
+  let elapsedBeforePause = 0;
   let rafId = null;
   let wavePhase = 0;
   let currentPct = 0;
@@ -133,28 +131,96 @@
   let bubbles = [];
   let running = false;
 
+  // localStorage helpers
+  function saveState() {
+    localStorage.setItem('su_timer', JSON.stringify({
+      totalMs,
+      startTime,
+      elapsedBeforePause,
+      done
+    }));
+  }
+
+  function clearState() {
+    localStorage.removeItem('su_timer');
+  }
+
+  function loadState() {
+    try {
+      const raw = localStorage.getItem('su_timer');
+      if (!raw) return null;
+      return JSON.parse(raw);
+    } catch(e) { return null; }
+  }
+
+  // Restore session on page load
+  function tryRestore() {
+    const s = loadState();
+    if (!s) return false;
+
+    totalMs = s.totalMs;
+    elapsedBeforePause = s.elapsedBeforePause;
+    done = s.done;
+
+    if (done) {
+      // Timer already finished while away
+      currentPct = 100;
+      running = false;
+      startTime = null;
+      showTimer();
+      for (let i = 0; i < 18; i++) spawnBubble();
+      return true;
+    }
+
+    // Calculate how much time passed while browser was closed
+    const awayMs = s.startTime ? (Date.now() - s.startTime) : 0;
+    elapsedBeforePause += awayMs;
+
+    if (elapsedBeforePause >= totalMs) {
+      // Finished while away
+      currentPct = 100;
+      done = true;
+      running = false;
+      startTime = null;
+      saveState();
+      showTimer();
+      for (let i = 0; i < 18; i++) spawnBubble();
+    } else {
+      // Still running
+      startTime = Date.now();
+      running = true;
+      showTimer();
+    }
+    return true;
+  }
+
+  function showTimer() {
+    setupEl.style.display = 'none';
+    timerOverlay.style.display = 'block';
+    cancelAnimationFrame(rafId);
+    drawFrame();
+  }
+
   function changeMin(d) {
     minutes = Math.max(1, Math.min(99, minutes + d));
     minDisplay.textContent = minutes + ' dk';
   }
 
-  // Pause when tab hidden, resume when visible
   document.addEventListener('visibilitychange', () => {
     if (!running) return;
     if (document.hidden) {
-      // Record how much time had elapsed up to now
       elapsedBeforePause += Date.now() - startTime;
-      pausedAt = Date.now();
+      startTime = null;
+      saveState();
     } else {
-      // Resume: new startTime is now
       startTime = Date.now();
-      pausedAt = null;
+      saveState();
     }
   });
 
   function getElapsedMs() {
     if (!running) return elapsedBeforePause;
-    if (document.hidden) return elapsedBeforePause;
+    if (!startTime) return elapsedBeforePause;
     return elapsedBeforePause + (Date.now() - startTime);
   }
 
@@ -171,7 +237,6 @@
   }
 
   function drawFrame() {
-    // Update percentage from real elapsed time
     if (running && !done) {
       const elapsed = getElapsedMs();
       currentPct = Math.min((elapsed / totalMs) * 100, 100);
@@ -179,6 +244,8 @@
         currentPct = 100;
         done = true;
         running = false;
+        startTime = null;
+        saveState();
         for (let i = 0; i < 18; i++) spawnBubble();
       }
     }
@@ -245,31 +312,28 @@
     totalMs = minutes * 60 * 1000;
     elapsedBeforePause = 0;
     startTime = Date.now();
-    pausedAt = null;
     currentPct = 0;
     done = false;
     running = true;
     wavePhase = 0;
     bubbles = [];
-    setupEl.style.display = 'none';
-    timerOverlay.style.display = 'block';
-    cancelAnimationFrame(rafId);
-    drawFrame();
+    saveState();
+    showTimer();
   }
 
   function resetTimer() {
     cancelAnimationFrame(rafId);
-    running = false;
-    done = false;
-    currentPct = 0;
-    elapsedBeforePause = 0;
-    startTime = null;
-    wavePhase = 0;
-    bubbles = [];
+    running = false; done = false;
+    currentPct = 0; elapsedBeforePause = 0;
+    startTime = null; wavePhase = 0; bubbles = [];
+    clearState();
     ctx.clearRect(0, 0, W, H);
     timerOverlay.style.display = 'none';
     setupEl.style.display = 'flex';
   }
+
+  // On load: restore or show setup
+  tryRestore();
 </script>
 </body>
 </html>
