@@ -90,7 +90,7 @@
   <p>kaç dakika?</p>
   <div class="controls">
     <button class="min-btn" onclick="changeMin(-1)">−</button>
-    <div id="min-display">5 dk</div>
+    <div id="min-display">10 dk</div>
     <button class="min-btn" onclick="changeMin(1)">+</button>
   </div>
   <button class="start-btn" onclick="goTimer()">başlat</button>
@@ -120,7 +120,7 @@
   resize();
   window.addEventListener('resize', resize);
 
-  let minutes = 5;
+  let minutes = 10;
   let totalMs = 0;
   let startTime = null;
   let elapsedBeforePause = 0;
