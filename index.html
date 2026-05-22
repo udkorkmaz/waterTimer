@@ -16,45 +16,86 @@
     display: block; position: fixed;
     top: 0; left: 0; width: 100%; height: 100%;
   }
+
+  /* ── SETUP SCREEN ── */
   #setup {
     position: fixed; inset: 0;
     display: flex; flex-direction: column;
     align-items: center; justify-content: center;
-    gap: 2rem; z-index: 10;
+    gap: 2.4rem; z-index: 10;
   }
-  #setup p {
-    font-size: 15px; color: rgba(255,255,255,0.45);
-    letter-spacing: 0.1em;
+
+  .timer-options {
+    display: flex;
+    gap: 1.4rem;
   }
-  .controls { display: flex; align-items: center; gap: 28px; }
-  .min-btn {
-    width: 52px; height: 52px; border-radius: 50%;
-    border: 1px solid rgba(255,255,255,0.25);
-    background: rgba(255,255,255,0.08);
-    font-size: 26px; cursor: pointer;
-    color: rgba(255,255,255,0.8);
-    display: flex; align-items: center; justify-content: center;
-    transition: background 0.12s;
+
+  .timer-card {
+    display: flex; flex-direction: column;
+    align-items: center; gap: 0.7rem;
+    padding: 1.4rem 2rem;
+    border-radius: 18px;
+    border: 1px solid rgba(255,255,255,0.15);
+    background: rgba(255,255,255,0.06);
+    cursor: pointer;
+    transition: background 0.15s, transform 0.1s;
     -webkit-tap-highlight-color: transparent;
+    min-width: 120px;
   }
-  .min-btn:hover { background: rgba(255,255,255,0.15); }
-  .min-btn:active { transform: scale(0.93); }
-  #min-display {
-    font-size: 52px; font-weight: 300;
-    min-width: 120px; text-align: center;
-    color: #fff; font-family: 'Courier New', monospace;
+  .timer-card:hover { background: rgba(255,255,255,0.11); }
+  .timer-card:active { transform: scale(0.96); }
+
+  .timer-card .duration {
+    font-size: 38px; font-weight: 300;
+    font-family: 'Courier New', monospace;
     letter-spacing: -1px;
   }
-  .start-btn {
-    padding: 14px 48px; border-radius: 50px;
-    border: 1px solid rgba(255,255,255,0.3);
-    background: rgba(90,184,236,0.25);
-    color: #fff; font-size: 16px; cursor: pointer;
-    letter-spacing: 0.08em; transition: background 0.15s;
+  .timer-card .label {
+    font-size: 12px; letter-spacing: 0.1em;
+    color: rgba(255,255,255,0.45);
+  }
+
+  /* blue timer */
+  .card-blue .duration { color: #6ec6ee; }
+  .card-blue { border-color: rgba(110,198,238,0.25); }
+
+  /* warm yellow timer  ← RENGİ DEĞİŞTİRMEK İÇİN BURADAKI HEX DEĞERLERİNİ DEĞİŞTİR */
+  .card-warm .duration { color: #f5c97a; }
+  .card-warm { border-color: rgba(245,201,122,0.25); }
+
+  /* stats row */
+  .stats-row {
+    display: flex; gap: 2rem;
+    justify-content: center;
+  }
+  .stat-block {
+    display: flex; flex-direction: column;
+    align-items: center; gap: 4px;
+  }
+  .stat-block .stat-label {
+    font-size: 11px; letter-spacing: 0.08em;
+    color: rgba(255,255,255,0.3);
+    text-transform: lowercase;
+  }
+  .stat-block .stat-value {
+    font-size: 15px; font-weight: 400;
+    font-family: 'Courier New', monospace;
+  }
+  .stat-blue { color: #6ec6ee; }
+  /* warm stats rengi  ← BURADA DA EŞLEŞTİR */
+  .stat-warm { color: #f5c97a; }
+
+  .clear-btn {
+    font-size: 11px; letter-spacing: 0.08em;
+    color: rgba(255,255,255,0.2);
+    background: none; border: none;
+    cursor: pointer; padding: 4px 8px;
+    transition: color 0.12s;
     -webkit-tap-highlight-color: transparent;
   }
-  .start-btn:hover { background: rgba(90,184,236,0.4); }
-  .start-btn:active { transform: scale(0.97); }
+  .clear-btn:hover { color: rgba(255,255,255,0.45); }
+
+  /* ── TIMER OVERLAY ── */
   #timer-overlay {
     display: none; position: fixed;
     inset: 0; z-index: 10; pointer-events: none;
@@ -87,13 +128,37 @@
 <canvas id="canvas"></canvas>
 
 <div id="setup">
-  <p>kaç dakika?</p>
-  <div class="controls">
-    <button class="min-btn" onclick="changeMin(-1)">−</button>
-    <div id="min-display">10 dk</div>
-    <button class="min-btn" onclick="changeMin(1)">+</button>
+  <div class="timer-options">
+    <div class="timer-card card-blue" onclick="goTimer('blue')">
+      <div class="duration">10</div>
+      <div class="label">dakika</div>
+    </div>
+    <div class="timer-card card-warm" onclick="goTimer('warm')">
+      <div class="duration">5</div>
+      <div class="label">dakika</div>
+    </div>
   </div>
-  <button class="start-btn" onclick="goTimer()">başlat</button>
+
+  <div class="stats-row">
+    <div class="stat-block">
+      <div class="stat-label">10 dk · oturum</div>
+      <div class="stat-value stat-blue" id="blue-sessions">0</div>
+    </div>
+    <div class="stat-block">
+      <div class="stat-label">10 dk · toplam</div>
+      <div class="stat-value stat-blue" id="blue-total">0 dk</div>
+    </div>
+    <div class="stat-block">
+      <div class="stat-label">5 dk · oturum</div>
+      <div class="stat-value stat-warm" id="warm-sessions">0</div>
+    </div>
+    <div class="stat-block">
+      <div class="stat-label">5 dk · toplam</div>
+      <div class="stat-value stat-warm" id="warm-total">0 dk</div>
+    </div>
+  </div>
+
+  <button class="clear-btn" onclick="clearStats()">kayıtları sil</button>
 </div>
 
 <div id="timer-overlay">
@@ -110,7 +175,6 @@
   const ctx = canvas.getContext('2d');
   const setupEl = document.getElementById('setup');
   const timerOverlay = document.getElementById('timer-overlay');
-  const minDisplay = document.getElementById('min-display');
 
   let W, H;
   function resize() {
@@ -120,7 +184,25 @@
   resize();
   window.addEventListener('resize', resize);
 
-  let minutes = 10;
+  /* ── THEME COLORS ──────────────────────────────────────────────
+     Renkleri değiştirmek için sadece bu iki objeyi düzenle.
+     gradTop = su yüzeyinin rengi
+     gradBot = su dibinin rengi
+     bubble  = kabarcık rengi (genellikle beyaz, değiştirme)
+  ────────────────────────────────────────────────────────────── */
+  const THEMES = {
+    blue: {
+      gradTop: '#6ec6ee',   /* mavi üst  */
+      gradBot: '#1a6fa8'    /* mavi alt  */
+    },
+    warm: {
+      gradTop: '#f5c97a',   /* sarı üst  */
+      gradBot: '#c47e1a'    /* sarı alt  */
+    }
+  };
+
+  /* ── STATE ── */
+  let activeTheme = 'blue';
   let totalMs = 0;
   let startTime = null;
   let elapsedBeforePause = 0;
@@ -131,103 +213,91 @@
   let bubbles = [];
   let running = false;
 
-  // localStorage helpers
-  function saveState() {
+  /* ── STATS ── */
+  function loadStats() {
+    try { return JSON.parse(localStorage.getItem('su_stats') || '{}'); } catch(e) { return {}; }
+  }
+  function saveStats(s) { localStorage.setItem('su_stats', JSON.stringify(s)); }
+
+  function recordCompletion(theme, minutes) {
+    const s = loadStats();
+    if (!s[theme]) s[theme] = { sessions: 0, totalMin: 0 };
+    s[theme].sessions++;
+    s[theme].totalMin += minutes;
+    saveStats(s);
+    renderStats();
+  }
+
+  function renderStats() {
+    const s = loadStats();
+    const b = s.blue || { sessions: 0, totalMin: 0 };
+    const w = s.warm || { sessions: 0, totalMin: 0 };
+    document.getElementById('blue-sessions').textContent = b.sessions;
+    document.getElementById('blue-total').textContent = b.totalMin + ' dk';
+    document.getElementById('warm-sessions').textContent = w.sessions;
+    document.getElementById('warm-total').textContent = w.totalMin + ' dk';
+  }
+
+  function clearStats() {
+    localStorage.removeItem('su_stats');
+    renderStats();
+  }
+
+  /* ── PERSIST TIMER ── */
+  function saveTimerState() {
     localStorage.setItem('su_timer', JSON.stringify({
-      totalMs,
-      startTime,
-      elapsedBeforePause,
-      done
+      totalMs, startTime, elapsedBeforePause, done, activeTheme
     }));
   }
+  function clearTimerState() { localStorage.removeItem('su_timer'); }
 
-  function clearState() {
-    localStorage.removeItem('su_timer');
-  }
-
-  function loadState() {
+  function tryRestore() {
     try {
       const raw = localStorage.getItem('su_timer');
-      if (!raw) return null;
-      return JSON.parse(raw);
-    } catch(e) { return null; }
-  }
+      if (!raw) return false;
+      const s = JSON.parse(raw);
+      totalMs = s.totalMs;
+      elapsedBeforePause = s.elapsedBeforePause;
+      done = s.done;
+      activeTheme = s.activeTheme || 'blue';
 
-  // Restore session on page load
-  function tryRestore() {
-    const s = loadState();
-    if (!s) return false;
-
-    totalMs = s.totalMs;
-    elapsedBeforePause = s.elapsedBeforePause;
-    done = s.done;
-
-    if (done) {
-      // Timer already finished while away
-      currentPct = 100;
-      running = false;
-      startTime = null;
-      showTimer();
-      for (let i = 0; i < 18; i++) spawnBubble();
+      if (done) {
+        currentPct = 100; running = false; startTime = null;
+        showTimer(); spawnInitialBubbles();
+        return true;
+      }
+      const awayMs = s.startTime ? (Date.now() - s.startTime) : 0;
+      elapsedBeforePause += awayMs;
+      if (elapsedBeforePause >= totalMs) {
+        currentPct = 100; done = true; running = false; startTime = null;
+        saveTimerState(); showTimer(); spawnInitialBubbles();
+      } else {
+        startTime = Date.now(); running = true;
+        showTimer();
+      }
       return true;
-    }
-
-    // Calculate how much time passed while browser was closed
-    const awayMs = s.startTime ? (Date.now() - s.startTime) : 0;
-    elapsedBeforePause += awayMs;
-
-    if (elapsedBeforePause >= totalMs) {
-      // Finished while away
-      currentPct = 100;
-      done = true;
-      running = false;
-      startTime = null;
-      saveState();
-      showTimer();
-      for (let i = 0; i < 18; i++) spawnBubble();
-    } else {
-      // Still running
-      startTime = Date.now();
-      running = true;
-      showTimer();
-    }
-    return true;
-  }
-
-  function showTimer() {
-    setupEl.style.display = 'none';
-    timerOverlay.style.display = 'block';
-    cancelAnimationFrame(rafId);
-    drawFrame();
-  }
-
-  function changeMin(d) {
-    minutes = Math.max(1, Math.min(99, minutes + d));
-    minDisplay.textContent = minutes + ' dk';
+    } catch(e) { return false; }
   }
 
   document.addEventListener('visibilitychange', () => {
     if (!running) return;
     if (document.hidden) {
       elapsedBeforePause += Date.now() - startTime;
-      startTime = null;
-      saveState();
+      startTime = null; saveTimerState();
     } else {
-      startTime = Date.now();
-      saveState();
+      startTime = Date.now(); saveTimerState();
     }
   });
 
   function getElapsedMs() {
-    if (!running) return elapsedBeforePause;
-    if (!startTime) return elapsedBeforePause;
+    if (!running || !startTime) return elapsedBeforePause;
     return elapsedBeforePause + (Date.now() - startTime);
   }
 
+  /* ── BUBBLES ── */
   function spawnBubble() {
     bubbles.push({
-      x: Math.random() * W,
-      y: H,
+      x: Math.random() * W, y: H,
       r: 3 + Math.random() * 8,
       speed: 0.8 + Math.random() * 1.6,
       wobble: Math.random() * Math.PI * 2,
@@ -235,18 +305,18 @@
       alpha: 0.4 + Math.random() * 0.4
     });
   }
+  function spawnInitialBubbles() { for (let i = 0; i < 18; i++) spawnBubble(); }
 
+  /* ── DRAW ── */
   function drawFrame() {
     if (running && !done) {
       const elapsed = getElapsedMs();
       currentPct = Math.min((elapsed / totalMs) * 100, 100);
       if (currentPct >= 100) {
-        currentPct = 100;
-        done = true;
-        running = false;
-        startTime = null;
-        saveState();
-        for (let i = 0; i < 18; i++) spawnBubble();
+        currentPct = 100; done = true; running = false; startTime = null;
+        saveTimerState();
+        recordCompletion(activeTheme, totalMs / 60000);
+        spawnInitialBubbles();
       }
     }
 
@@ -255,6 +325,7 @@
     ctx.fillRect(0, 0, W, H);
 
     if (currentPct > 0) {
+      const theme = THEMES[activeTheme];
       const waterTop = H - (currentPct / 100) * H;
       const amp = done ? 0 : 1;
       const t = wavePhase;
@@ -275,8 +346,8 @@
       ctx.closePath();
 
       const grad = ctx.createLinearGradient(0, waterTop, 0, H);
-      grad.addColorStop(0, '#6ec6ee');
-      grad.addColorStop(1, '#1a6fa8');
+      grad.addColorStop(0, theme.gradTop);
+      grad.addColorStop(1, theme.gradBot);
       ctx.fillStyle = grad;
       ctx.fill();
 
@@ -290,8 +361,7 @@
             ctx.beginPath();
             ctx.arc(b.x, b.y, b.r, 0, Math.PI * 2);
             ctx.strokeStyle = `rgba(255,255,255,${b.alpha})`;
-            ctx.lineWidth = 1.4;
-            ctx.stroke();
+            ctx.lineWidth = 1.4; ctx.stroke();
             ctx.beginPath();
             ctx.arc(b.x - b.r * 0.3, b.y - b.r * 0.35, b.r * 0.35, 0, Math.PI * 2);
             ctx.fillStyle = `rgba(255,255,255,${b.alpha * 0.55})`;
@@ -308,31 +378,39 @@
     rafId = requestAnimationFrame(drawFrame);
   }
 
-  function goTimer() {
+  /* ── CONTROLS ── */
+  function showTimer() {
+    setupEl.style.display = 'none';
+    timerOverlay.style.display = 'block';
+    cancelAnimationFrame(rafId);
+    drawFrame();
+  }
+
+  function goTimer(theme) {
+    const minutes = theme === 'blue' ? 10 : 5;
+    activeTheme = theme;
     totalMs = minutes * 60 * 1000;
     elapsedBeforePause = 0;
     startTime = Date.now();
-    currentPct = 0;
-    done = false;
-    running = true;
-    wavePhase = 0;
-    bubbles = [];
-    saveState();
+    currentPct = 0; done = false; running = true;
+    wavePhase = 0; bubbles = [];
+    saveTimerState();
     showTimer();
   }
 
   function resetTimer() {
     cancelAnimationFrame(rafId);
-    running = false; done = false;
-    currentPct = 0; elapsedBeforePause = 0;
-    startTime = null; wavePhase = 0; bubbles = [];
-    clearState();
+    running = false; done = false; currentPct = 0;
+    elapsedBeforePause = 0; startTime = null;
+    wavePhase = 0; bubbles = [];
+    clearTimerState();
     ctx.clearRect(0, 0, W, H);
     timerOverlay.style.display = 'none';
     setupEl.style.display = 'flex';
   }
 
-  // On load: restore or show setup
+  /* ── INIT ── */
+  renderStats();
   tryRestore();
 </script>
 </body>
