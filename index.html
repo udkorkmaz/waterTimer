@@ -16,78 +16,82 @@
     display: block; position: fixed;
     top: 0; left: 0; width: 100%; height: 100%;
   }
-
-  /* ── SETUP SCREEN ── */
   #setup {
     position: fixed; inset: 0;
     display: flex; flex-direction: column;
     align-items: center; justify-content: center;
-    gap: 2.4rem; z-index: 10;
+    gap: 2rem; z-index: 10;
+    padding: 1rem;
   }
-
   .timer-options {
-    display: flex;
-    gap: 1.4rem;
+    display: flex; flex-wrap: wrap;
+    gap: 1rem; justify-content: center;
   }
-
   .timer-card {
     display: flex; flex-direction: column;
-    align-items: center; gap: 0.7rem;
-    padding: 1.4rem 2rem;
+    align-items: center; gap: 0.5rem;
+    padding: 1.2rem 1.6rem;
     border-radius: 18px;
     border: 1px solid rgba(255,255,255,0.15);
     background: rgba(255,255,255,0.06);
     cursor: pointer;
     transition: background 0.15s, transform 0.1s;
     -webkit-tap-highlight-color: transparent;
-    min-width: 120px;
+    min-width: 90px;
   }
   .timer-card:hover { background: rgba(255,255,255,0.11); }
   .timer-card:active { transform: scale(0.96); }
-
   .timer-card .duration {
-    font-size: 38px; font-weight: 300;
+    font-size: 34px; font-weight: 300;
     font-family: 'Courier New', monospace;
     letter-spacing: -1px;
   }
   .timer-card .label {
-    font-size: 12px; letter-spacing: 0.1em;
-    color: rgba(255,255,255,0.45);
+    font-size: 11px; letter-spacing: 0.1em;
+    color: rgba(255,255,255,0.4);
   }
 
-  /* blue timer */
+  /* 5 dk — sarı */
+  .card-yellow .duration { color: #f5c97a; }
+  .card-yellow { border-color: rgba(245,201,122,0.25); }
+  /* 10 dk — yeşil */
+  .card-green .duration { color: #7ecb8f; }
+  .card-green { border-color: rgba(126,203,143,0.25); }
+  /* 15 dk — mavi */
   .card-blue .duration { color: #6ec6ee; }
   .card-blue { border-color: rgba(110,198,238,0.25); }
+  /* 20 dk — mor */
+  .card-purple .duration { color: #b39ddb; }
+  .card-purple { border-color: rgba(179,157,219,0.25); }
 
-  /* warm yellow timer  ← RENGİ DEĞİŞTİRMEK İÇİN BURADAKI HEX DEĞERLERİNİ DEĞİŞTİR */
-  .card-warm .duration { color: #f5c97a; }
-  .card-warm { border-color: rgba(245,201,122,0.25); }
-
-  /* stats row */
-  .stats-row {
-    display: flex; gap: 2rem;
-    justify-content: center;
+  /* stats */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.8rem 1.4rem;
+    justify-items: center;
   }
   .stat-block {
     display: flex; flex-direction: column;
-    align-items: center; gap: 4px;
+    align-items: center; gap: 3px;
   }
   .stat-block .stat-label {
-    font-size: 11px; letter-spacing: 0.08em;
-    color: rgba(255,255,255,0.3);
-    text-transform: lowercase;
+    font-size: 10px; letter-spacing: 0.07em;
+    color: rgba(255,255,255,0.28);
+    white-space: nowrap;
   }
   .stat-block .stat-value {
-    font-size: 15px; font-weight: 400;
+    font-size: 14px; font-weight: 400;
     font-family: 'Courier New', monospace;
   }
-  .stat-blue { color: #6ec6ee; }
-  /* warm stats rengi  ← BURADA DA EŞLEŞTİR */
-  .stat-warm { color: #f5c97a; }
+  .c-yellow { color: #f5c97a; }
+  .c-green  { color: #7ecb8f; }
+  .c-blue   { color: #6ec6ee; }
+  .c-purple { color: #b39ddb; }
 
   .clear-btn {
     font-size: 11px; letter-spacing: 0.08em;
-    color: rgba(255,255,255,0.2);
+    color: rgba(255,255,255,0.18);
     background: none; border: none;
     cursor: pointer; padding: 4px 8px;
     transition: color 0.12s;
@@ -95,7 +99,6 @@
   }
   .clear-btn:hover { color: rgba(255,255,255,0.45); }
 
-  /* ── TIMER OVERLAY ── */
   #timer-overlay {
     display: none; position: fixed;
     inset: 0; z-index: 10; pointer-events: none;
@@ -129,32 +132,56 @@
 
 <div id="setup">
   <div class="timer-options">
-    <div class="timer-card card-blue" onclick="goTimer('blue')">
+    <div class="timer-card card-yellow" onclick="goTimer('yellow')">
+      <div class="duration">5</div>
+      <div class="label">dakika</div>
+    </div>
+    <div class="timer-card card-green" onclick="goTimer('green')">
       <div class="duration">10</div>
       <div class="label">dakika</div>
     </div>
-    <div class="timer-card card-warm" onclick="goTimer('warm')">
-      <div class="duration">5</div>
+    <div class="timer-card card-blue" onclick="goTimer('blue')">
+      <div class="duration">15</div>
+      <div class="label">dakika</div>
+    </div>
+    <div class="timer-card card-purple" onclick="goTimer('purple')">
+      <div class="duration">20</div>
       <div class="label">dakika</div>
     </div>
   </div>
 
-  <div class="stats-row">
-    <div class="stat-block">
-      <div class="stat-label">10 dk · oturum</div>
-      <div class="stat-value stat-blue" id="blue-sessions">0</div>
-    </div>
-    <div class="stat-block">
-      <div class="stat-label">10 dk · toplam</div>
-      <div class="stat-value stat-blue" id="blue-total">0 dk</div>
-    </div>
+  <div class="stats-grid">
     <div class="stat-block">
       <div class="stat-label">5 dk · oturum</div>
-      <div class="stat-value stat-warm" id="warm-sessions">0</div>
+      <div class="stat-value c-yellow" id="yellow-sessions">0</div>
+    </div>
+    <div class="stat-block">
+      <div class="stat-label">10 dk · oturum</div>
+      <div class="stat-value c-green" id="green-sessions">0</div>
+    </div>
+    <div class="stat-block">
+      <div class="stat-label">15 dk · oturum</div>
+      <div class="stat-value c-blue" id="blue-sessions">0</div>
+    </div>
+    <div class="stat-block">
+      <div class="stat-label">20 dk · oturum</div>
+      <div class="stat-value c-purple" id="purple-sessions">0</div>
     </div>
     <div class="stat-block">
       <div class="stat-label">5 dk · toplam</div>
-      <div class="stat-value stat-warm" id="warm-total">0 dk</div>
+      <div class="stat-value c-yellow" id="yellow-total">0 dk</div>
+    </div>
+    <div class="stat-block">
+      <div class="stat-label">10 dk · toplam</div>
+      <div class="stat-value c-green" id="green-total">0 dk</div>
+    </div>
+    <div class="stat-block">
+      <div class="stat-label">15 dk · toplam</div>
+      <div class="stat-value c-blue" id="blue-total">0 dk</div>
+    </div>
+    <div class="stat-block">
+      <div class="stat-label">20 dk · toplam</div>
+      <div class="stat-value c-purple" id="purple-total">0 dk</div>
     </div>
   </div>
 
@@ -184,24 +211,18 @@
   resize();
   window.addEventListener('resize', resize);
 
-  /* ── THEME COLORS ──────────────────────────────────────────────
-     Renkleri değiştirmek için sadece bu iki objeyi düzenle.
-     gradTop = su yüzeyinin rengi
-     gradBot = su dibinin rengi
-     bubble  = kabarcık rengi (genellikle beyaz, değiştirme)
-  ────────────────────────────────────────────────────────────── */
+  /* ── THEME COLORS ──────────────────────────────────────
+     Renkleri değiştirmek için gradTop ve gradBot hex değerlerini düzenle.
+  ────────────────────────────────────────────────────── */
   const THEMES = {
-    blue: {
-      gradTop: '#6ec6ee',   /* mavi üst  */
-      gradBot: '#1a6fa8'    /* mavi alt  */
-    },
-    warm: {
-      gradTop: '#f5c97a',   /* sarı üst  */
-      gradBot: '#c47e1a'    /* sarı alt  */
-    }
+    yellow: { gradTop: '#f5c97a', gradBot: '#c47e1a' },  /* sarı  */
+    green:  { gradTop: '#7ecb8f', gradBot: '#2e7d45' },  /* yeşil */
+    blue:   { gradTop: '#6ec6ee', gradBot: '#1a6fa8' },  /* mavi  */
+    purple: { gradTop: '#b39ddb', gradBot: '#5e35b1' }   /* mor   */
   };
 
-  /* ── STATE ── */
+  const MINUTES = { yellow: 5, green: 10, blue: 15, purple: 20 };
+
   let activeTheme = 'blue';
   let totalMs = 0;
   let startTime = null;
@@ -219,23 +240,22 @@
   }
   function saveStats(s) { localStorage.setItem('su_stats', JSON.stringify(s)); }
 
-  function recordCompletion(theme, minutes) {
+  function recordCompletion(theme) {
     const s = loadStats();
     if (!s[theme]) s[theme] = { sessions: 0, totalMin: 0 };
     s[theme].sessions++;
-    s[theme].totalMin += minutes;
+    s[theme].totalMin += MINUTES[theme];
     saveStats(s);
     renderStats();
   }
 
   function renderStats() {
     const s = loadStats();
-    const b = s.blue || { sessions: 0, totalMin: 0 };
-    const w = s.warm || { sessions: 0, totalMin: 0 };
-    document.getElementById('blue-sessions').textContent = b.sessions;
-    document.getElementById('blue-total').textContent = b.totalMin + ' dk';
-    document.getElementById('warm-sessions').textContent = w.sessions;
-    document.getElementById('warm-total').textContent = w.totalMin + ' dk';
+    ['yellow','green','blue','purple'].forEach(t => {
+      const d = s[t] || { sessions: 0, totalMin: 0 };
+      document.getElementById(t + '-sessions').textContent = d.sessions;
+      document.getElementById(t + '-total').textContent = d.totalMin + ' dk';
+    });
   }
 
   function clearStats() {
@@ -256,15 +276,11 @@
       const raw = localStorage.getItem('su_timer');
       if (!raw) return false;
       const s = JSON.parse(raw);
-      totalMs = s.totalMs;
-      elapsedBeforePause = s.elapsedBeforePause;
-      done = s.done;
-      activeTheme = s.activeTheme || 'blue';
-
+      totalMs = s.totalMs; elapsedBeforePause = s.elapsedBeforePause;
+      done = s.done; activeTheme = s.activeTheme || 'blue';
       if (done) {
         currentPct = 100; running = false; startTime = null;
-        showTimer(); spawnInitialBubbles();
-        return true;
+        showTimer(); spawnInitialBubbles(); return true;
       }
       const awayMs = s.startTime ? (Date.now() - s.startTime) : 0;
       elapsedBeforePause += awayMs;
@@ -272,8 +288,7 @@
         currentPct = 100; done = true; running = false; startTime = null;
         saveTimerState(); showTimer(); spawnInitialBubbles();
       } else {
-        startTime = Date.now(); running = true;
-        showTimer();
+        startTime = Date.now(); running = true; showTimer();
       }
       return true;
     } catch(e) { return false; }
@@ -314,9 +329,7 @@
       currentPct = Math.min((elapsed / totalMs) * 100, 100);
       if (currentPct >= 100) {
         currentPct = 100; done = true; running = false; startTime = null;
-        saveTimerState();
-        recordCompletion(activeTheme, totalMs / 60000);
-        spawnInitialBubbles();
+        saveTimerState(); recordCompletion(activeTheme); spawnInitialBubbles();
       }
     }
 
@@ -353,8 +366,7 @@
 
       if (done) {
         bubbles.forEach(b => {
-          b.y -= b.speed;
-          b.wobble += b.wobbleSpeed;
+          b.y -= b.speed; b.wobble += b.wobbleSpeed;
           b.x += Math.sin(b.wobble) * 0.7;
           if (b.y - b.r < waterTop) b.alpha -= 0.05;
           if (b.alpha > 0) {
@@ -387,15 +399,12 @@
   }
 
   function goTimer(theme) {
-    const minutes = theme === 'blue' ? 10 : 5;
     activeTheme = theme;
-    totalMs = minutes * 60 * 1000;
-    elapsedBeforePause = 0;
-    startTime = Date.now();
+    totalMs = MINUTES[theme] * 60 * 1000;
+    elapsedBeforePause = 0; startTime = Date.now();
     currentPct = 0; done = false; running = true;
     wavePhase = 0; bubbles = [];
-    saveTimerState();
-    showTimer();
+    saveTimerState(); showTimer();
   }
 
   function resetTimer() {
@@ -409,7 +418,6 @@
     setupEl.style.display = 'flex';
   }
 
-  /* ── INIT ── */
   renderStats();
   tryRestore();
 </script>
